@@ -3,7 +3,8 @@ from models.message import createMessage
 
 def sendMessage(sender: str,
                 receiver: str,
-                message: str
+                message: str,
+                encryption_key: bytes = None
 ):
     """
     Send an encrypted message
@@ -11,13 +12,14 @@ def sendMessage(sender: str,
     :param sender: sender username
     :param receiver: receiver username
     :param message: message to be sent
+    :param encryption_key: encryption key (optional, generates new if not provided)
 
     :return: result of message insert operation
     """
 
     try:
-        # Create crypto instance and encrypt message
-        crypto = Crypto()
+        # Create crypto instance with provided key (or generate new one)
+        crypto = Crypto(key=encryption_key)
         encryptedMsg = crypto.encrypt(message)
 
         # Build message document

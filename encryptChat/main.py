@@ -1,6 +1,8 @@
-from functions.sendMessage import sendMessage
-from auth import login, register
+from auth import login
+from auth import register
+from cryptography.fernet import Fernet
 from db.mongoClient import MongoDB
+from functions.sendMessage import sendMessage
 
 import sys
 import atexit
@@ -37,9 +39,29 @@ def main():
            message: str = input('Type your message: ')
            receiver: str = input('Username to send message: ')
 
+           # Ask if user has encryption key
+           has_key = input('Do you have an encryption key? (yes/no): ').lower().strip()
+
+           # declaring encryption key variable
+           encryption_key: str = None
+           # user has key: encode key
+           if has_key in ['yes', 'y']:
+               # User has a key, ask for it
+               keyStr = input('Enter your encryption key: ').strip()
+               encryption_key = keyStr.encode()
+           else:
+               # Generate new key and show to user
+               encryption_key = Fernet.generate_key()
+               print("\n" + "="*60)
+               print("🔑 NEW ENCRYPTION KEY GENERATED")
+               print("="*60)
+               print(f"Key: {encryption_key.decode()}")
+               print("\n⚠️  SAVE THIS KEY! You'll need it to decrypt messages.")
+               print("="*60 + "\n")
+
            # Encrypt and send message
            print("Encrypting and sending message...")
-           sendMessage(username, receiver, message)
+           sendMessage(username, receiver, message, encryption_key)
            print("Message sent successfully!")
 
        # Login failed
