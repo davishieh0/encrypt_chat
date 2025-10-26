@@ -1,8 +1,9 @@
 from auth import login
 from auth import register
 from cryptography.fernet import Fernet
-from db.mongoClient import MongoDB
 from functions.sendMessage import sendMessage
+from functions.receiveMensage import receiveMessage
+from db.mongoClient import MongoDB
 
 import sys
 import atexit
@@ -18,7 +19,7 @@ def main():
     # Validate command line arguments
     if len(sys.argv) != 2:
        print("Usage: python3 main.py <command>")
-       print("Available commands: /send, /register")
+       print("Available commands: /send, /register, /recive")
        return
 
     # Handle /send command
@@ -79,10 +80,43 @@ def main():
        register(username, password)
        print("User registered successfully!")
 
+    elif sys.argv[1] == '/receive':
+
+        # Get credentials from user
+        username: str = input('Username: ')
+        password: str = input('Password: ')
+
+        # Authenticate user
+        print("Authenticating...")
+        logged = login(username, password)
+        # If login successful: receive message
+        if logged:
+
+            print("Login successful!")
+
+            # Receive and display messages
+
+            print("Receiving and decrypting messages...")
+
+            messages = receiveMessage(username)
+
+            if messages:
+
+                print(f"You have received {len(messages)} new message(s):")
+
+                for msg in messages:
+                    print(f"--- FROM: {msg['sender']} ---")
+
+                    print(f"MESSAGE: {msg['message']}")
+
+            else:
+
+                print("No new messages.")
+
     # Unknown command
     else:
         print(f"Unknown command: {sys.argv[1]}")
-        print("Available commands: /send, /register")
+        print("Available commands: /send, /register, /receive")
 
 
 if __name__ == "__main__":
