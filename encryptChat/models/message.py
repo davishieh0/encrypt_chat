@@ -24,45 +24,45 @@ def createMessage(data: dict):
 
 def getMessages(receiver: str) -> list:
     """
-    Busca todas as mensagens não lidas para um destinatário específico.
+        Fetches all unread messages for a specific recipient.
 
-    :param receiver: username do destinatário ('to' field).
-    :return: Uma lista de documentos de mensagem (dicionários).
+        :param receiver: username of the recipient ('to' field).
+        :return: A list of message documents (dictionaries).
     """
-    db = getDB()
-    collection = db.get_collection('Message')
+    db = getDb()
+    collection = db.get_collection('message')
 
-    # Query: Busca mensagens onde 'to' é o receiver E 'status' é 'unread'
+    # Query: Searches for messages where 'to' is the receiver AND 'status' is 'unread'
     query = {
         "to": receiver,
         "status": "unread"
     }
 
-    # Retorna as mensagens como uma lista
+    # Returns the messages as a list
     messages = list(collection.find(query))
     return messages
 
 
-def updateMessageStatus(message_ids: list, status: str) -> int:
+def updateMessageStatus(messageIds: list, status: str) -> int:
     """
-    Atualiza o status de uma lista de mensagens.
+        Updates the status of a list of messages.
 
-    :param message_ids: Uma lista de _id's das mensagens (strings ou ObjectId) a serem atualizadas.
-    :param status: O novo status ('read' ou 'unread').
-    :return: O número de documentos modificados.
+        :param message_ids: A list of message _id's (strings or ObjectId) to be updated.
+        :param status: The new status ('read' or 'unread').
+        :return: The number of modified documents.
     """
-    db = getDB()
-    collection = db.get_collection('Message')
+    db = getDb()
+    collection = db.get_collection('message')
 
-    # Converte os IDs para ObjectId, necessário para buscas no MongoDB
-    object_ids = [ObjectId(id) for id in message_ids]
+    # Converts the IDs to ObjectId, required for MongoDB queries
+    object_ids = [ObjectId(id) for id in messageIds]
 
-    # Query: Encontra todos os documentos onde o _id está na lista fornecida
+    # Query: Finds all documents where the _id is in the provided list
     query = {
         "_id": {"$in": object_ids}
     }
 
-    # Update: Define o campo 'status' para o novo valor
+    # Update: Sets the 'status' field to the new value
     update_op = {
         "$set": {"status": status}
     }

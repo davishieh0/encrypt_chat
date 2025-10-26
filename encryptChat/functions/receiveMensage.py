@@ -1,55 +1,54 @@
 from utils.criptography.criptography import Crypto
-# Assumindo que a chave é carregada do constants.py
-from utils.constants import ENCRYPTION_KEY
 from models.message import getMessages
 from models.message import updateMessageStatus
 
-
-def receiveMessage(receiver: str, mark_as_read: bool = True) -> list:
+def receiveMessage(receiver: str, decryptKey : str , mark_as_read: bool = True) -> list:
     """
-    Recebe mensagens não lidas para um usuário, as descriptografa
-    e opcionalmente as marca como lidas.
+        Receives unread messages for a user, decrypts them,
+        and optionally marks them as read.
 
-    :param receiver: username do usuário que está recebendo as mensagens.
-    :param mark_as_read: (opcional) Se deve marcar as mensagens como "read" no banco de dados. Padrão: True.
-    :return: Uma lista de dicionários contendo as mensagens descriptografadas.
+        :param receiver: username of the user receiving the messages.
+        :param decryptKey: the decryption key.
+        :param mark_as_read: (optional) Whether to mark messages as "read" in the database. Default: True.
+        :return: A list of dictionaries containing the decrypted messages.
     """
     try:
-        # Inicializa o objeto Crypto com a mesma chave usada para criptografar
-        crypto = Crypto(key=ENCRYPTION_KEY)
+        # Initialize the Crypto object with the same key used for encryption
+        crypto = Crypto(key=decryptKey)
 
-        # 1. Busca as mensagens não lidas
+        # Fetch unread messages
         unread_messages = getMessages(receiver)
-        print(unread_messages)
         received_messages = []
-        message_ids_to_update = []
+        messageIdsToUpdate = []
 
-        for msg_doc in unread_messages:
-            print(unread_messages)
-            encrypted_msg = msg_doc['message']
+        for msgDoc in unread_messages:
+            encryptedMsg = msgDoc['message']
 
-            # 2. Descriptografa a mensagem
-            # Fernet.decrypt retorna bytes, então decodificamos para string
-            decrypted_msg_bytes = crypto.decrypt(encrypted_msg)
-            decrypted_msg = decrypted_msg_bytes.decode('utf-8')
+            # Decrypt the message
+            # Fernet.decrypt returns bytes, so we decode it to a string
+            try:
+                decryptedMsgBytes = crypto.decrypt(encryptedMsg)
+                decryptedMsg = decryptedMsgBytes.decode('utf-8')
 
-            # 3. Adiciona a mensagem descriptografada à lista de retorno
-            received_messages.append({
-                'sender': msg_doc['from'],
-                'message': decrypted_msg,
-                'timestamp': msg_doc.get('timestamp')  # Se você armazenar timestamp
-            })
+                # Format the message to be easy to handle in main
+                received_messages.append({
+                    'sender': msgDoc['from'],
+                    'message': decryptedMsg,
+                    'timestamp': msgDoc.get('timestamp')
+                })
 
-            # Armazena o ID da mensagem para a atualização de status
-            # É importante garantir que seja um valor que possa ser convertido para ObjectId
-            message_ids_to_update.append(msg_doc['_id'])
+                # Store the message ID for status update
+                # It's important to ensure this value can be converted to ObjectId
+                messageIdsToUpdate.append(msgDoc['_id'])
+            except Exception as e:
+                print(f"this message dont use this key")
 
-        # 4. Opcional: Marca as mensagens como lidas no banco de dados
-        if mark_as_read and message_ids_to_update:
-            updateMessageStatus(message_ids_to_update, 'read')
+        # Mark messages as read in the database
+        if mark_as_read and messageIdsToUpdate:
+            updateMessageStatus(messageIdsToUpdate, 'read')
 
         return received_messages
 
     except Exception as e:
-        # Captura e levanta o erro, útil para debugging
+        # Catch and raise the error, useful for debugging
         raise Exception(f"Failed to receive/decrypt messages for {receiver}. Error: {e}")

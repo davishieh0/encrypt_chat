@@ -96,9 +96,11 @@ def main():
 
             # Receive and display messages
 
+            decryptKey: str = input('Enter your encryption key: ').strip()
+
             print("Receiving and decrypting messages...")
 
-            messages = receiveMessage(username)
+            messages = receiveMessage(username, decryptKey)
 
             if messages:
 
