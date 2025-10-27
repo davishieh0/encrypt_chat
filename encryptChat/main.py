@@ -38,6 +38,10 @@ def main():
 
            # Get message details
            message: str = input('Type your message: ')
+
+           if len(message) > 50:
+              raise Exception('Message exceeds 50 character limit')
+
            receiver: str = input('Username to send message: ')
 
            # Ask if user has encryption key
