@@ -1,3 +1,4 @@
+from datetime import datetime
 from utils.criptography.criptography import Crypto
 from models.message import createMessage
 
@@ -28,6 +29,7 @@ def sendMessage(sender: str,
             'to': receiver,
             'message': encryptedMsg,
             'status': 'unread',
+            'timestamp': datetime.now()
         }
 
         # Insert message into database and return result
